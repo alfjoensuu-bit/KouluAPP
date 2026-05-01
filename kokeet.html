@@ -29,6 +29,11 @@ if (!session || !session.username) {
   <a class="header_link" href="kokeet.html">Kokeet</a>
   <a class="header_link" href="todistus.html">Todistus</a>
   <a class="header_link" href="aikataulu.html">Aikataulu</a>
+
+  <!-- BACKUP -->
+  <button class="button" onclick="exportBackup()">Lataa backup</button>
+  <input type="file" id="backupFile" class="input">
+  <button class="button" onclick="importBackup()">Palauta backup</button>
 </header>
 
 <div id="taulukko">
@@ -58,7 +63,7 @@ if (!session || !session.username) {
 <script>
 const STORAGE_KEY = "kouluapp_exams";
 
-// ---------------- STORAGE ----------------
+// -------- STORAGE --------
 function getExams() {
   return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 }
@@ -67,27 +72,35 @@ function saveExams(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-// ---------------- GRADE CONVERTER ----------------
+// -------- GRADE CONVERT --------
 function convertGrade(input) {
-  input = input.toString().trim();
+  input = input.trim();
 
-  // + arvosana (esim 9+)
   if (input.endsWith("+")) {
     const base = Number(input.slice(0, -1));
-    return base + 0.25;
+    return isNaN(base) ? NaN : base + 0.25;
   }
 
-  // - arvosana (esim 9-)
   if (input.endsWith("-")) {
     const base = Number(input.slice(0, -1));
-    return base - 0.25;
+    return isNaN(base) ? NaN : base - 0.25;
   }
 
-  // normaali numero
-  return Number(input);
+  const num = Number(input);
+  return isNaN(num) ? NaN : num;
 }
 
-// ---------------- RENDER ----------------
+// -------- COLOR --------
+function getGradeClass(grade) {
+  const g = Number(grade);
+
+  if (g >= 9) return "grade-high";
+  if (g >= 7) return "grade-mid";
+  if (g >= 5) return "grade-low";
+  return "grade-fail";
+}
+
+// -------- RENDER --------
 function renderExams() {
   const table = document.getElementById("examTable");
   table.innerHTML = "";
@@ -99,7 +112,11 @@ function renderExams() {
 
     row.innerHTML = `
       <td>${item.subject}</td>
-      <td>${item.grade}</td>
+      <td>
+        <span class="grade ${getGradeClass(item.grade)}">
+          ${item.grade}
+        </span>
+      </td>
       <td>
         <button class="button" onclick="deleteExam(${index})">Poista</button>
       </td>
@@ -111,7 +128,7 @@ function renderExams() {
   updateAverage();
 }
 
-// ---------------- ADD ----------------
+// -------- ADD --------
 function addExam() {
   const subject = document.getElementById("subject").value.trim();
   const gradeInput = document.getElementById("grade").value.trim();
@@ -148,35 +165,29 @@ function addExam() {
   renderExams();
 }
 
-// ---------------- DELETE ----------------
+// -------- DELETE --------
 function deleteExam(index) {
-  const ok = confirm("Poistetaanko koe?");
-  if (!ok) return;
+  if (!confirm("Poistetaanko koe?")) return;
 
   const exams = getExams();
-
   exams.splice(index, 1);
 
   saveExams(exams);
   renderExams();
 }
 
-// ---------------- AVERAGE ----------------
+// -------- AVERAGE --------
 function calculateAverage() {
   const exams = getExams();
 
   if (exams.length === 0) return 0;
 
-  const sum = exams.reduce((total, item) => {
-    return total + Number(item.grade);
-  }, 0);
-
+  const sum = exams.reduce((t, i) => t + Number(i.grade), 0);
   return (sum / exams.length).toFixed(2);
 }
 
 function updateAverage() {
   const avgText = document.getElementById("averageText");
-
   const exams = getExams();
 
   if (exams.length === 0) {
@@ -187,9 +198,12 @@ function updateAverage() {
   avgText.textContent = "Keskiarvo: " + calculateAverage();
 }
 
-// ---------------- INIT ----------------
+// -------- INIT --------
 window.addEventListener("DOMContentLoaded", renderExams);
 </script>
+
+<!-- TÄRKEÄ -->
+<script src="script.js"></script>
 
 </body>
 </html>

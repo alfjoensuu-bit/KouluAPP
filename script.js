@@ -1,24 +1,41 @@
+
+// =====================
+// 🔑 STORAGE KEYS
+// =====================
 const STORAGE_KEY = "kouluapp_users";
 const SESSION_KEY = "kouluapp_session";
 
-// ---------------- UI HELPER ----------------
+const KEYS = {
+  grades: "kouluapp_grades",
+  exams: "kouluapp_exams",
+  schedule: "lukujarjestys",
+  target: "kouluapp_target",
+  session: "kouluapp_session"
+};
+
+// =====================
+// 🧩 UI HELPER
+// =====================
 function showMessage(element, message, isError = false) {
   if (!element) return;
   element.textContent = message;
   element.style.color = isError ? "#c0392b" : "#27ae60";
 }
 
-// ---------------- STORAGE ----------------
+// =====================
+// 💾 USERS STORAGE
+// =====================
 function getUsers() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 }
 
 function saveUsers(users) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
 }
 
-// ---------------- REGISTER ----------------
+// =====================
+// 📝 REGISTER
+// =====================
 function registerUser(username, email, password) {
   if (!username || !email || !password) {
     return { success: false, message: "Täytä kaikki kentät." };
@@ -26,14 +43,11 @@ function registerUser(username, email, password) {
 
   const users = getUsers();
 
-  const existsUser = users.some(u => u.username === username);
-  const existsEmail = users.some(u => u.email === email);
-
-  if (existsUser) {
+  if (users.some(u => u.username === username)) {
     return { success: false, message: "Käyttäjänimi on jo käytössä." };
   }
 
-  if (existsEmail) {
+  if (users.some(u => u.email === email)) {
     return { success: false, message: "Sähköposti on jo käytössä." };
   }
 
@@ -46,13 +60,12 @@ function registerUser(username, email, password) {
 
   saveUsers(users);
 
-  return {
-    success: true,
-    message: "Rekisteröinti onnistui"
-  };
+  return { success: true, message: "Rekisteröinti onnistui" };
 }
 
-// ---------------- LOGIN ----------------
+// =====================
+// 🔐 LOGIN
+// =====================
 function loginUser(identifier, password) {
   if (!identifier || !password) {
     return { success: false, message: "Täytä kaikki kentät." };
@@ -76,56 +89,53 @@ function loginUser(identifier, password) {
     })
   );
 
-  return {
-    success: true,
-    message: `Tervetuloa ${user.username}!`
-  };
+  return { success: true, message: `Tervetuloa ${user.username}!` };
 }
 
-// ---------------- LOGOUT ----------------
+// =====================
+// 🚪 LOGOUT + SESSION
+// =====================
 function logoutUser() {
   localStorage.removeItem(SESSION_KEY);
 }
 
-// ---------------- SESSION ----------------
 function getSession() {
-  const data = localStorage.getItem(SESSION_KEY);
-  return data ? JSON.parse(data) : null;
+  return JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
 }
 
-// ---------------- AUTH FORMS ----------------
+// =====================
+// 🧾 AUTH FORMS
+// =====================
 function initAuthForms() {
   const registerForm = document.getElementById("registerForm");
   const loginForm = document.getElementById("loginForm");
+
   const registerMessage = document.getElementById("registerMessage");
   const loginMessage = document.getElementById("loginMessage");
 
-  // REGISTER
   if (registerForm) {
     registerForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const username = registerForm.username.value.trim();
-      const email = registerForm.email.value.trim();
-      const password = registerForm.password.value;
-
-      const result = registerUser(username, email, password);
+      const result = registerUser(
+        registerForm.username.value.trim(),
+        registerForm.email.value.trim(),
+        registerForm.password.value
+      );
 
       showMessage(registerMessage, result.message, !result.success);
-
       if (result.success) registerForm.reset();
     });
   }
 
-  // LOGIN
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const identifier = loginForm.identifier.value.trim();
-      const password = loginForm.password.value;
-
-      const result = loginUser(identifier, password);
+      const result = loginUser(
+        loginForm.identifier.value.trim(),
+        loginForm.password.value
+      );
 
       showMessage(loginMessage, result.message, !result.success);
 
@@ -137,7 +147,9 @@ function initAuthForms() {
   }
 }
 
-// ---------------- DASHBOARD ----------------
+// =====================
+// 📊 DASHBOARD
+// =====================
 function initDashboard() {
   const session = getSession();
   const userText = document.getElementById("user");
@@ -152,7 +164,69 @@ function initDashboard() {
   }
 }
 
-// ---------------- INIT ----------------
+// =====================
+// 📦 BACKUP EXPORT
+// =====================
+function exportBackup() {
+  const backup = {
+    grades: JSON.parse(localStorage.getItem(KEYS.grades)) || [],
+    exams: JSON.parse(localStorage.getItem(KEYS.exams)) || [],
+    schedule: JSON.parse(localStorage.getItem(KEYS.schedule)) || [],
+    target: localStorage.getItem(KEYS.target) || null,
+    session: getSession()
+  };
+
+  const blob = new Blob([JSON.stringify(backup, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "kouluapp-backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+// =====================
+// 📥 BACKUP IMPORT
+// =====================
+function importBackup() {
+  const fileInput = document.getElementById("backupFile");
+
+  if (!fileInput || !fileInput.files.length) {
+    alert("Valitse backup-tiedosto!");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      if (data.grades) localStorage.setItem(KEYS.grades, JSON.stringify(data.grades));
+      if (data.exams) localStorage.setItem(KEYS.exams, JSON.stringify(data.exams));
+      if (data.schedule) localStorage.setItem(KEYS.schedule, JSON.stringify(data.schedule));
+      if (data.target !== undefined) localStorage.setItem(KEYS.target, data.target);
+      if (data.session) localStorage.setItem(KEYS.session, JSON.stringify(data.session));
+
+      alert("Backup palautettu!");
+      location.reload();
+
+    } catch (err) {
+      alert("Virheellinen backup-tiedosto!");
+    }
+  };
+
+  reader.readAsText(fileInput.files[0]);
+}
+
+// =====================
+// 🚀 INIT
+// =====================
 window.addEventListener("DOMContentLoaded", () => {
   initAuthForms();
   initDashboard();

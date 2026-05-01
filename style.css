@@ -216,3 +216,33 @@ tr:hover {
 #day:active {
     transform: scale(0.99);
 }
+.grade {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+/* HYVÄ */
+.grade-high {
+  background: #d4f8d4;
+  color: #1b7f2a;
+}
+
+/* OK */
+.grade-mid {
+  background: #fff6cc;
+  color: #8a6d00;
+}
+
+/* HEIKKO */
+.grade-low {
+  background: #ffe0b2;
+  color: #a85a00;
+}
+
+/* FAIL */
+.grade-fail {
+  background: #ffd6d6;
+  color: #a10000;
+}
