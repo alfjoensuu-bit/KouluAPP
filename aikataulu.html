@@ -34,7 +34,7 @@ if (!session || !session.username) {
 <!-- BACKUP -->
 <div style="margin: 15px 0;">
   <button class="button" onclick="exportBackup()">Lataa backup</button>
-  <input type="file" id="backupFile" class="input">
+  <input type="file" id="backupFile" hidden>
   <button class="button" onclick="importBackup()">Palauta backup</button>
 </div>
 
@@ -63,6 +63,7 @@ if (!session || !session.username) {
       <th>Alkaa</th>
       <th>Päättyy</th>
       <th>Tunti</th>
+      <th>Poista</th>
     </tr>
   </thead>
 
@@ -88,7 +89,7 @@ function renderSchedule() {
 
   const schedule = getSchedule();
 
-  schedule.forEach((lesson) => {
+  schedule.forEach((lesson, index) => {
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -96,6 +97,11 @@ function renderSchedule() {
       <td>${lesson.start}</td>
       <td>${lesson.end}</td>
       <td>${lesson.subject}</td>
+      <td>
+        <button class="button" onclick="deleteLesson(${index})">
+          Poista
+        </button>
+      </td>
     `;
 
     table.appendChild(row);
@@ -129,6 +135,19 @@ function addLesson() {
   document.getElementById("end").value = "";
   document.getElementById("subject").value = "";
 
+  renderSchedule();
+}
+
+// ---------------- DELETE ----------------
+function deleteLesson(index) {
+  const ok = confirm("Poistetaanko tunti?");
+  if (!ok) return;
+
+  const schedule = getSchedule();
+
+  schedule.splice(index, 1);
+
+  saveSchedule(schedule);
   renderSchedule();
 }
 

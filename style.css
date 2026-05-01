@@ -131,17 +131,17 @@ header img {
 #todistus-button {
     position: fixed;
     left: 20px;
-    top: 140px;
+    top: 300px;
 }
 #kokeet-button {
     position: fixed;
     left: 140px;
-    top: 140px;
+    top: 300px;
 }
 #aikataulu-button {
     position: fixed;
     left: 260px;
-    top: 140px;
+    top: 300px;
 }
 #logoutbutton {
     position: fixed;
@@ -245,4 +245,24 @@ tr:hover {
 .grade-fail {
   background: #ffd6d6;
   color: #a10000;
+}
+#exportBackupButton {
+    position: fixed;
+    left: 20px;
+    top: 500px;
+}
+#backupFile {
+    position: fixed;
+    left: 180px;
+    top: 500px;
+}
+#importBackupButton {
+    position: fixed;
+    left: 525px;
+    top: 500px;
+}
+#logoutbutton {
+    position: fixed;
+    left: 20px;
+    top: 600px;
 }
