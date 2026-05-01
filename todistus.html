@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.png" type="image/png">
+
+<title>Todistus</title>
+</head>
+
+<body>
+
+<!-- SESSION CHECK -->
+<script>
+const session = JSON.parse(localStorage.getItem("kouluapp_session"));   
+if (!session || !session.username) {
+  window.location.href = "index.html";
+}
+</script>
+
+<header>
+  <a href="index.html">
+    <img src="logo.png" alt="logo">
+  </a>
+  <a class="header_link" href="dashboard.html">Dashboard</a>
+  <a class="header_link" href="kokeet.html">Kokeet</a>
+  <a class="header_link" href="todistus.html">Todistus</a>
+  <a class="header_link" href="aikataulu.html">Aikataulu</a>
+</header>
+
+<div id="taulukko">
+
+<h2>Lisää arvosana</h2>
+
+<input class="input" id="subject" placeholder="Aine (esim. Matematiikka)">
+<input type="number" class="input" id="grade" min="4" max="10" placeholder="Arvosana (esim. 9)">
+<button class="button" onclick="addGrade()">Lisää</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aine</th>
+      <th>Arvosana</th>
+      <th>Poista</th>
+    </tr>
+  </thead>
+
+  <tbody id="gradesTable"></tbody>
+</table>
+<h3 id="averageText">Keskiarvo: -</h3>
+</div>
+
+<script>
+const STORAGE_KEY = "kouluapp_grades";
+
+// HAE
+function getGrades() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+}
+
+// TALLENNA
+function saveGrades(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// RENDER
+function renderGrades() {
+  const table = document.getElementById("gradesTable");
+  table.innerHTML = "";
+
+  const grades = getGrades();
+
+  grades.forEach((item, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${item.subject}</td>
+      <td>${item.grade}</td>
+      <td>
+        <button class="button" onclick="deleteGrade(${index})">Poista</button>
+      </td>
+    `;
+
+    table.appendChild(row);
+  });
+
+  updateAverage(); // 🔥 TÄMÄ LISÄÄ KESKIARVON PÄIVITYKSEN
+}
+
+// LISÄÄ
+function addGrade() {
+  const subject = document.getElementById("subject").value.trim();
+  const grade = document.getElementById("grade").value.trim();
+
+  if (!subject || !grade) {
+    alert("Täytä kaikki kentät!");
+    return;
+  }
+
+  const grades = getGrades();
+
+  grades.push({ subject, grade });
+
+  saveGrades(grades);
+
+  document.getElementById("subject").value = "";
+  document.getElementById("grade").value = "";
+
+  renderGrades();
+}
+function addGrade() {
+  const subject = document.getElementById("subject").value.trim();
+  const grade = document.getElementById("grade").value.trim();
+
+  if (!subject || !grade) {
+    alert("Täytä kaikki kentät!");
+    return;
+  }
+
+  const grades = getGrades();
+
+  grades.push({ subject, grade });
+
+  saveGrades(grades);
+
+  document.getElementById("subject").value = "";
+  document.getElementById("grade").value = "";
+
+  renderGrades();
+  updateAverage(); // 🔥
+}
+
+// POISTA
+function deleteGrade(index) {
+  const confirmDelete = confirm("Haluatko varmasti poistaa tämän arvosanan?");
+  if (!confirmDelete) return;
+
+  const grades = getGrades();
+
+  grades.splice(index, 1);
+
+  saveGrades(grades);
+  renderGrades();
+}
+
+// INIT
+window.addEventListener("DOMContentLoaded", () => {
+  renderGrades();
+  updateAverage();
+});
+
+// KESKIARVO
+function calculateAverage() {
+  const grades = getGrades();
+
+  if (grades.length === 0) {
+    return 0;
+  }
+
+  const sum = grades.reduce((total, item) => {
+    return total + Number(item.grade);
+  }, 0);
+
+  return (sum / grades.length).toFixed(2);
+}
+
+function updateAverage() {
+  const avgText = document.getElementById("averageText");
+
+  const avg = calculateAverage();
+
+  if (avg == 0) {
+    avgText.textContent = "Keskiarvo: -";
+  } else {
+    avgText.textContent = "Keskiarvo: " + avg;
+  }
+}
+</script>
+
+</body>
+</html>

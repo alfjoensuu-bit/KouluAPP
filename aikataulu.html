@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fi" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.png" type="image/png">
+<script>
+const session = JSON.parse(localStorage.getItem("kouluapp_session"));   
+if (!session || !session.username) {
+  window.location.href = "index.html";
+}
+</script>
+<title>Aikataulu</title>
+</head>
+<body>
+<header>
+    <a href="index.html">
+        <img src="logo.png" alt="Sivuston logo">
+    </a>
+    <a class="header_link" href="dashboard.html">Dashboard</a>
+    <a class="header_link" href="kokeet.html">Kokeet</a>
+    <a class="header_link" href="todistus.html">Todistus</a>
+    <a class="header_link" href="aikataulu.html">Aikataulu</a>
+</header>
+<h2>Lukujärjestys</h2>
+
+<!-- INPUTIT -->
+<select id="day">
+  <option>Ma</option>
+  <option>Ti</option>
+  <option>Ke</option>
+  <option>To</option>
+  <option>Pe</option>
+</select>
+
+<input class="input" id="start" type="time">
+<input class="input" id="end" type="time">
+<input class="input" id="subject" placeholder="Tunnin nimi">
+
+<button class="button" onclick="addLesson()">Lisää tunti</button>
+
+<!-- TAULUKKO -->
+<table>
+  <thead>
+    <tr>
+      <th>Päivä</th>
+      <th>Alkaa</th>
+      <th>Päättyy</th>
+      <th>Tunti</th>
+    </tr>
+  </thead>
+
+  <tbody id="scheduleTable"></tbody>
+</table>
+
+<script>
+  const STORAGE_KEY = "lukujarjestys";
+
+// ---------------- HAE DATA ----------------
+function getSchedule() {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+// ---------------- TALLENNA ----------------
+function saveSchedule(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// ---------------- PIIRRÄ TAULUKKO ----------------
+function renderSchedule() {
+  const table = document.getElementById("scheduleTable");
+  table.innerHTML = "";
+
+  const schedule = getSchedule();
+
+  schedule.forEach((lesson, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${lesson.day}</td>
+      <td>${lesson.start}</td>
+      <td>${lesson.end}</td>
+      <td>${lesson.subject}</td>
+    `;
+
+    table.appendChild(row);
+  });
+}
+
+// ---------------- LISÄÄ TUNTI ----------------
+function addLesson() {
+  const day = document.getElementById("day").value;
+  const start = document.getElementById("start").value;
+  const end = document.getElementById("end").value;
+  const subject = document.getElementById("subject").value.trim();
+
+  if (!start || !end || !subject) {
+    alert("Täytä kaikki kentät!");
+    return;
+  }
+
+  const schedule = getSchedule();
+
+  schedule.push({
+    day,
+    start,
+    end,
+    subject
+  });
+
+  saveSchedule(schedule);
+
+  document.getElementById("start").value = "";
+  document.getElementById("end").value = "";
+  document.getElementById("subject").value = "";
+
+  renderSchedule();
+}
+
+// ---------------- INIT ----------------
+window.addEventListener("DOMContentLoaded", () => {
+  renderSchedule();
+});
+</script>
+</body>
+</html>

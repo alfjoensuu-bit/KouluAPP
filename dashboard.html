@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.png" type="image/png">
+<script>
+const session = JSON.parse(localStorage.getItem("kouluapp_session"));
+
+if (!session || !session.username) {
+  window.location.href = "index.html";
+}
+</script>
+<title>Dashboard</title>
+</head>
+
+<body>
+
+<header>
+    <a href="index.html">
+        <img src="logo.png" alt="Sivuston logo">
+    </a>
+    <a class="header_link" href="dashboard.html">Dashboard</a>
+    <a class="header_link" href="kokeet.html">Kokeet</a>
+    <a class="header_link" href="todistus.html">Todistus</a>
+    <a class="header_link" href="aikataulu.html">Aikataulu</a>
+</header>
+
+<div id="dashboard">
+    <h1 id="dashboard-welcome">Tervetuloa Dashboardille!</h1>
+    
+</div>
+<div id="apit">
+    <a id="todistus-button"href="todistus.html" class="app-button">
+    <img src="Todistus.png" alt="Todistus">
+    <span>Todistus</span>
+</a>
+<a id="kokeet-button"href="kokeet.html" class="app-button">
+    <img src="Kokeet.png" alt="Kokeet">
+    <span>Kokeet</span>
+    </a>
+    <a id="aikataulu-button"href="aikataulu.html" class="app-button">
+    <img src="Aikataulu.png" alt="Aikataulu">
+    <span>Aikataulu</span>
+    </a>
+</a>
+</div>
+<div id="logout"></div>
+<button class="button" id="logoutbutton" onclick="logout()">Kirjaudu ulos</button>
+
+<script>
+function logout() {
+  localStorage.removeItem("kouluapp_session");
+  window.location.href = "index.html";
+}
+</script>
+</div>
+</body>
+</html>

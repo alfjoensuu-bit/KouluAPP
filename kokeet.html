@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="favicon.png" type="image/png">
+
+<title>Kokeet</title>
+</head>
+
+<body>
+
+<!-- SESSION CHECK -->
+<script>
+const session = JSON.parse(localStorage.getItem("kouluapp_session"));
+if (!session || !session.username) {
+  window.location.href = "index.html";
+}
+</script>
+
+<header>
+  <a href="index.html">
+    <img src="logo.png" alt="logo">
+  </a>
+
+  <a class="header_link" href="dashboard.html">Dashboard</a>
+  <a class="header_link" href="kokeet.html">Kokeet</a>
+  <a class="header_link" href="todistus.html">Todistus</a>
+  <a class="header_link" href="aikataulu.html">Aikataulu</a>
+</header>
+
+<div id="taulukko">
+
+<h2>Lisää koe</h2>
+
+<input class="input" id="subject" placeholder="Kokeen nimi">
+<input class="input" id="grade" placeholder="Arvosana (esim. 9, 9+, 8-)">
+<button class="button" onclick="addExam()">Lisää</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Koe</th>
+      <th>Arvosana</th>
+      <th>Poista</th>
+    </tr>
+  </thead>
+
+  <tbody id="examTable"></tbody>
+</table>
+
+<h3 id="averageText">Keskiarvo: -</h3>
+
+</div>
+
+<script>
+const STORAGE_KEY = "kouluapp_exams";
+
+// ---------------- STORAGE ----------------
+function getExams() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+}
+
+function saveExams(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+// ---------------- GRADE CONVERTER ----------------
+function convertGrade(input) {
+  input = input.toString().trim();
+
+  // + arvosana (esim 9+)
+  if (input.endsWith("+")) {
+    const base = Number(input.slice(0, -1));
+    return base + 0.25;
+  }
+
+  // - arvosana (esim 9-)
+  if (input.endsWith("-")) {
+    const base = Number(input.slice(0, -1));
+    return base - 0.25;
+  }
+
+  // normaali numero
+  return Number(input);
+}
+
+// ---------------- RENDER ----------------
+function renderExams() {
+  const table = document.getElementById("examTable");
+  table.innerHTML = "";
+
+  const exams = getExams();
+
+  exams.forEach((item, index) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${item.subject}</td>
+      <td>${item.grade}</td>
+      <td>
+        <button class="button" onclick="deleteExam(${index})">Poista</button>
+      </td>
+    `;
+
+    table.appendChild(row);
+  });
+
+  updateAverage();
+}
+
+// ---------------- ADD ----------------
+function addExam() {
+  const subject = document.getElementById("subject").value.trim();
+  const gradeInput = document.getElementById("grade").value.trim();
+
+  if (!subject || !gradeInput) {
+    alert("Täytä kaikki kentät!");
+    return;
+  }
+
+  const grade = convertGrade(gradeInput);
+
+  if (isNaN(grade)) {
+    alert("Virheellinen arvosana!");
+    return;
+  }
+
+  if (grade < 4 || grade > 10) {
+    alert("Arvosana pitää olla 4–10");
+    return;
+  }
+
+  const exams = getExams();
+
+  exams.push({
+    subject,
+    grade: Number(grade.toFixed(2))
+  });
+
+  saveExams(exams);
+
+  document.getElementById("subject").value = "";
+  document.getElementById("grade").value = "";
+
+  renderExams();
+}
+
+// ---------------- DELETE ----------------
+function deleteExam(index) {
+  const ok = confirm("Poistetaanko koe?");
+  if (!ok) return;
+
+  const exams = getExams();
+
+  exams.splice(index, 1);
+
+  saveExams(exams);
+  renderExams();
+}
+
+// ---------------- AVERAGE ----------------
+function calculateAverage() {
+  const exams = getExams();
+
+  if (exams.length === 0) return 0;
+
+  const sum = exams.reduce((total, item) => {
+    return total + Number(item.grade);
+  }, 0);
+
+  return (sum / exams.length).toFixed(2);
+}
+
+function updateAverage() {
+  const avgText = document.getElementById("averageText");
+
+  const exams = getExams();
+
+  if (exams.length === 0) {
+    avgText.textContent = "Keskiarvo: -";
+    return;
+  }
+
+  avgText.textContent = "Keskiarvo: " + calculateAverage();
+}
+
+// ---------------- INIT ----------------
+window.addEventListener("DOMContentLoaded", renderExams);
+</script>
+
+</body>
+</html>
